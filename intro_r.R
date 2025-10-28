@@ -21,7 +21,7 @@ sqrt(10)
 ## ----assignment---------------------------------------------------------------
 x <- 3
 y = 4
-5 -> z # works, but not recommended
+z <- y + 1
 
 ## ----atomic_vectors-----------------------------------------------------------
 pyth_triple <- c(x, y, z)
@@ -29,20 +29,15 @@ pyth_triple <- c(x, y, z)
 # indexing with boolean (condition)
 pyth_triple[pyth_triple >= 4]
 
-## ----sequences----------------------------------------------------------------
-seq_incr <- seq(1, 5, by = 1)
-seq_decr <- 10^seq(4, 0, by = -1)
-
 ## ----factors------------------------------------------------------------------
-x1 <- c("Dec", "Apr", "Jan", "Mar")
-x2 <- c("Dec", "Apr", "Jam", "Mar")
+x1 <- c("Dec", "Apr", "Jam", "Mar")
 sort(x1)
 month_levels <- c(
   "Jan", "Feb", "Mar", "Apr", "May", "Jun", 
   "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
 )
 y1 <- factor(x1, levels = month_levels)
-y2 <- factor(x2, levels = month_levels)
+y1
 sort(y1)
 
 ## ----matrices-----------------------------------------------------------------
@@ -51,19 +46,19 @@ diag(mat) <- c(seq(1, 2, by = 1), seq(4, 2, by = -1))
 mat
 
 ## ----data_frames--------------------------------------------------------------
-v_char <- paste0("char", seq(1, 10, 1))
-v_num <- seq(0.01, 0.1, length.out = 10)
-v_bool <- c(rep(TRUE, 4), rep(FALSE, 6))
-df <- data.frame(col1 = v_char,
-                 col2 = v_num,
-                 col3 = v_bool)
-df$col1[df$col3] #indexing
-df$col2[df$col2 > 0.05]
+v_char <- c("Lucy", "Stefanie", "Florian", "Michelle", "Jacky", "Anna", "Pia", "Markus")
+v_num <- c(18, 20, 22, 30, 29, 50, 38, 25)
+v_bool <- c(TRUE, TRUE, FALSE, TRUE, TRUE, TRUE, TRUE, FALSE)
+df <- data.frame(name = v_char,
+                 age = v_num,
+                 female_names = v_bool)
+df$name[df$female_names] #indexing
+df$age[df$age > 25]
 
 ## ----lists--------------------------------------------------------------------
 my_list <- list(matrix = mat, 
                 vector = pyth_triple, 
-                fact = y2, 
+                fact = y1, 
                 bool = TRUE)
 
 ## ----installation, eval = FALSE-----------------------------------------------
@@ -71,7 +66,6 @@ my_list <- list(matrix = mat,
 
 ## ----load_packages------------------------------------------------------------
 library(tidyverse)
-citation("tidyverse")
 
 ## ----help_packages------------------------------------------------------------
 help(package = "tidyverse")
@@ -79,24 +73,20 @@ help(package = "tidyverse")
 ## ----data_import--------------------------------------------------------------
 ?read.table
 
-# getwd()
-# setwd("C:/Users/puchhammer/Documents/Konferenzen Workshops/R_Ladies2025_IntroToR/intro-to-R-main/")
-
 path1 <- file.path("iris", "iris_1.csv")
 path2 <- file.path("iris", "iris_2.csv")
 path3 <- file.path("iris", "iris_3.txt")
 path4 <- file.path("iris", "iris_4.txt")
 
-iris1 <- read.csv(path1, header = T)
-iris2 <- read.csv2(path2, dec = ".")
+iris1 <- read.csv(path1, header = F)
+iris2 <- read.csv2(path2, dec = ",")
 iris3 <- read.table(path3, header = T)
-iris4 <- read.table(path4)
+iris4 <- read.table(path4, header = T)
 
 head(iris1) # look at data
 
-
-
 ## ----data_proc----------------------------------------------------------------
+iris1 <- read.csv(path1, header = T)
 ?iris
 
 # selecting and naming columns
@@ -105,7 +95,7 @@ colnames(iris_new) <- c("sepal_l", "sepal_w", "petal_l", "petal_w", "species")
 
 # missing values
 iris_new[5,2] <- NA
-mean(iris_new[,2], na.rm = TRUE)
+mean(iris_new[,2])
 iris_new <- na.omit(iris_new)
 mean(iris_new[,2])
 
@@ -121,56 +111,63 @@ head(iris_new)
 write.csv(iris_new, file = file.path("iris", "iris_mod.csv"))
 
 save(iris_new, file = file.path("iris", "iris_mod.Rdata"))
+rm(iris_new)
 load(file = file.path("iris", "iris_mod.Rdata"))
 
 ## ----basic_plots--------------------------------------------------------------
 plot(iris_new$sepal_l, iris_new$petal_l, 
      type = "p", 
-     lty = 1, 
      col = iris_new$species,
      xlab = "Sepal Length", ylab = "Petal Length")
 points(iris_new$sepal_l[100], iris_new$petal_l[100], 
        pch = 19,
        col = iris_new$species[100])
-legend("bottomright", fill = c("black", "red", "green"), legend = levels(iris_new$species))
+legend("bottomright", 
+       fill = c("black", "red", "green"), 
+       legend = levels(iris_new$species))
 abline(v = iris_new$sepal_l[100], lty = 2)
 abline(h = iris_new$petal_l[100], lty = 3)
 abline(coef = c(0.6, 0.75), col = "green")
 
-## ----histogram----------------------------------------------------------------
-hist(iris_new$petal_w, 
-     breaks = 10,
-     main = "Example for histogram",
-     xlab = "Petal Width",
-     col = "lightblue", lty = 2)
-abline(v = 0.7, lty = 1, col = "red")
-
 ## -----------------------------------------------------------------------------
-pairs(iris_new[,1:2], 
+pairs(iris_new[,1:4], 
       col = iris_new$species, 
       pch = as.numeric(iris_new$species),
-      labels = c("Sepal Length", "Sepal Width"))
+      labels = c("Sepal Length", "Sepal Width", "Petal Length", "Petal Width"))
 
 ## ----plots_export-------------------------------------------------------------
 
 
 ## ----ggplots------------------------------------------------------------------
 library(ggplot2)
+
 ggplot(data = iris_new,
        aes(x = total_w, 
            y = total_l, 
            groups = species,
            col = species)) + 
-  geom_point() +
-  geom_line(aes(linetype = species)) +
-  geom_smooth(method = "lm", se = FALSE) +
+  geom_point(aes(pch = species), 
+             size = 2, alpha = 0.5) +
+  geom_smooth(aes(fill = species), 
+              method = "lm", 
+              alpha = 0.2, linewidth = 0.75) +
   xlab("Total Width") + ylab("Total Length") +
-  labs(col = "Species", linetype = "Species") +
+  labs(col = "Species", 
+       pch = "Species", 
+       fill = "Species") +
   scale_color_brewer(palette = "Set1") + 
+  scale_fill_brewer(palette = "Set1") + 
   theme_light()
 
 ? scale_color_brewer 
 ? theme_light
+
+# Now its time to make your own plots with ggplot2 :)
+
+? geom_histogram # aes(fill= _, x or y = _)
+? geom_boxplot # aes(fill= _, x or y = _)
+? geom_qq # aes(sample=_)
+? geom_text  # aes(x=_, y=_, label=_)
 
 ## ----if_else------------------------------------------------------------------
 if (3 > 5) {
